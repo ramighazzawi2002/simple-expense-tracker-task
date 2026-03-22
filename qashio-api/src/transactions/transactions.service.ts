@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -79,11 +75,7 @@ export class TransactionsService {
       );
     }
 
-    const sortColumn = field === 'createdAt' || field === 'updatedAt'
-      ? `transaction.${field}`
-      : `transaction.${field}`;
-
-    qb.orderBy(sortColumn, order)
+    qb.orderBy(`transaction.${field}`, order)
       .skip((page - 1) * limit)
       .take(limit);
 

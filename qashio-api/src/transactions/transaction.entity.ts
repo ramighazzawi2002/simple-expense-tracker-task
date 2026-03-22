@@ -28,7 +28,12 @@ export class Transaction {
   id: string;
 
   @ApiProperty({ example: 150.5 })
-  @Column({ type: 'decimal', precision: 12, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    transformer: { to: (value: number) => value, from: (value: string) => parseFloat(value) },
+  })
   amount: number;
 
   @ApiProperty({ enum: TransactionType, example: TransactionType.EXPENSE })
@@ -36,7 +41,7 @@ export class Transaction {
   type: TransactionType;
 
   @ApiProperty({ type: () => Category })
-  @ManyToOne(() => Category, { eager: true, nullable: false })
+  @ManyToOne(() => Category, { nullable: false })
   @JoinColumn({ name: 'categoryId' })
   category: Category;
 
