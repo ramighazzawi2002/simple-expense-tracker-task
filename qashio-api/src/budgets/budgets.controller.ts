@@ -21,8 +21,8 @@ export class BudgetsController {
 
   @Get()
   @ApiOperation({ summary: 'List all budgets with current spending' })
-  @ApiResponse({ status: 200 })
-  findAll() {
+  @ApiResponse({ status: 200, type: [Budget] })
+  findAll(): Promise<(Budget & { spent: number })[]> {
     return this.budgetsService.findAll();
   }
 }

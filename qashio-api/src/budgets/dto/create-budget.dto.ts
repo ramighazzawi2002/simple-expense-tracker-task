@@ -26,9 +26,11 @@ export class CreateBudgetDto {
 
   @ApiProperty({ example: '2026-03-01' })
   @IsDateString()
+  @IsNotEmpty()
   startDate: string;
 
   @ApiProperty({ example: '2026-03-31' })
   @IsDateString()
+  @IsNotEmpty()
   endDate: string;
 }
