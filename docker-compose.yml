@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   qashio-api:
-    build: 
+    build:
       context: ./qashio-api
       dockerfile: Dockerfile
     ports:
@@ -12,10 +10,13 @@ services:
       - redis
       - kafka
     environment:
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/qashio_points
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - KAFKA_BROKER=kafka:29092
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:password@postgres:5432/qashio_points}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - KAFKA_BROKER=${KAFKA_BROKER:-kafka:29092}
+      - NODE_ENV=${NODE_ENV:-development}
+      - SWAGGER_USER=${SWAGGER_USER:-admin}
+      - SWAGGER_PASSWORD=${SWAGGER_PASSWORD:-changeme}
     networks:
       - default
 
@@ -33,9 +34,9 @@ services:
   postgres:
     image: postgres:15
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=qashio_points
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_DB:-qashio_points}
     ports:
       - "5433:5432"
     volumes:
@@ -55,8 +56,8 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-admin@admin.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
     ports:
       - "5050:80"
     depends_on:
