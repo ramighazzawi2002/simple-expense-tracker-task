@@ -15,6 +15,7 @@ export class UniqueConstraintFilter implements ExceptionFilter {
       response.status(409).json(conflict.getResponse());
       return;
     }
-    throw exception;
+    const response = host.switchToHttp().getResponse();
+    response.status(500).json({ statusCode: 500, message: 'Internal server error' });
   }
 }
