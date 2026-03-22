@@ -19,4 +19,11 @@ export class TransactionEventsListener {
       `Transaction updated: id=${transaction.id}, amount=${transaction.amount}, type=${transaction.type}, status=${transaction.status}`,
     );
   }
+
+  @OnEvent('transaction.deleted')
+  handleTransactionDeleted(transaction: Transaction) {
+    this.logger.log(
+      `Transaction deleted: id=${transaction.id}, amount=${transaction.amount}, type=${transaction.type}`,
+    );
+  }
 }

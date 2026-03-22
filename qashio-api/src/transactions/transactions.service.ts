@@ -111,7 +111,8 @@ export class TransactionsService {
     const { categoryId: _, ...rest } = dto;
     Object.assign(transaction, rest);
 
-    const updated = await this.transactionRepository.save(transaction);
+    await this.transactionRepository.save(transaction);
+    const updated = await this.findOne(id);
     this.eventEmitter.emit('transaction.updated', updated);
     return updated;
   }
@@ -119,5 +120,6 @@ export class TransactionsService {
   async remove(id: string): Promise<void> {
     const transaction = await this.findOne(id);
     await this.transactionRepository.remove(transaction);
+    this.eventEmitter.emit('transaction.deleted', { ...transaction, id });
   }
 }

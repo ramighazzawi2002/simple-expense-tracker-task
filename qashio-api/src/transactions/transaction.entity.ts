@@ -45,6 +45,10 @@ export class Transaction {
   @JoinColumn({ name: 'categoryId' })
   category: Category;
 
+  @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
+  @Column()
+  categoryId: string;
+
   @ApiProperty({ example: '2026-03-23' })
   @Column({ type: 'date' })
   date: string;
