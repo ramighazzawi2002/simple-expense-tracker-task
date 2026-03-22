@@ -28,7 +28,6 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Post()
-  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new transaction' })
   @ApiResponse({ status: 201, type: Transaction })
   @ApiResponse({ status: 400, description: 'Validation failed' })

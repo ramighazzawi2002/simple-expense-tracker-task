@@ -17,6 +17,15 @@ export enum SortOrder {
   DESC = 'DESC',
 }
 
+export enum SortableField {
+  AMOUNT = 'amount',
+  DATE = 'date',
+  STATUS = 'status',
+  TYPE = 'type',
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+}
+
 export class QueryTransactionDto {
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()
@@ -33,10 +42,10 @@ export class QueryTransactionDto {
   @Max(100)
   limit?: number = 10;
 
-  @ApiPropertyOptional({ default: 'createdAt' })
+  @ApiPropertyOptional({ enum: SortableField, default: SortableField.CREATED_AT })
   @IsOptional()
-  @IsString()
-  sortBy?: string = 'createdAt';
+  @IsEnum(SortableField)
+  sortBy?: SortableField = SortableField.CREATED_AT;
 
   @ApiPropertyOptional({ enum: SortOrder, default: SortOrder.DESC })
   @IsOptional()

@@ -4,11 +4,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CategoriesService } from '../categories/categories.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { QueryTransactionDto } from './dto/query-transaction.dto';
+import { QueryTransactionDto, SortableField } from './dto/query-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from './transaction.entity';
-
-const SORTABLE_FIELDS = ['amount', 'date', 'status', 'type', 'createdAt', 'updatedAt'];
 
 @Injectable()
 export class TransactionsService {
@@ -26,8 +24,9 @@ export class TransactionsService {
       category,
     });
     const saved = await this.transactionRepository.save(transaction);
-    this.eventEmitter.emit('transaction.created', saved);
-    return saved;
+    const full = await this.findOne(saved.id);
+    this.eventEmitter.emit('transaction.created', full);
+    return full;
   }
 
   async findAll(query: QueryTransactionDto): Promise<{
@@ -37,7 +36,7 @@ export class TransactionsService {
     const {
       page = 1,
       limit = 10,
-      sortBy = 'createdAt',
+      sortBy = SortableField.CREATED_AT,
       order = 'DESC',
       category,
       type,
@@ -46,8 +45,6 @@ export class TransactionsService {
       endDate,
       search,
     } = query;
-
-    const field = SORTABLE_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
 
     const qb = this.transactionRepository
       .createQueryBuilder('transaction')
@@ -69,13 +66,14 @@ export class TransactionsService {
       qb.andWhere('transaction.date <= :endDate', { endDate });
     }
     if (search) {
+      const escaped = search.replace(/[%_]/g, '\\$&');
       qb.andWhere(
         '(transaction.reference ILIKE :search OR transaction.counterparty ILIKE :search OR transaction.narration ILIKE :search)',
-        { search: `%${search}%` },
+        { search: `%${escaped}%` },
       );
     }
 
-    qb.orderBy(`transaction.${field}`, order)
+    qb.orderBy(`transaction.${sortBy}`, order)
       .skip((page - 1) * limit)
       .take(limit);
 
@@ -110,7 +108,7 @@ export class TransactionsService {
       transaction.category = await this.categoriesService.findOne(dto.categoryId);
     }
 
-    const { categoryId, ...rest } = dto;
+    const { categoryId: _, ...rest } = dto;
     Object.assign(transaction, rest);
 
     const updated = await this.transactionRepository.save(transaction);
