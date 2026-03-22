@@ -5,6 +5,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CategoriesModule } from './categories/categories.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CategoriesModule } from './categories/categories.module';
     }),
     EventEmitterModule.forRoot(),
     CategoriesModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
