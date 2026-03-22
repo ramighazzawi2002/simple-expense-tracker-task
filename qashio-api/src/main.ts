@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as basicAuth from 'express-basic-auth';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -11,6 +12,19 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, transform: true }),
   );
+
+  if (process.env.NODE_ENV === 'production') {
+    app.use(
+      '/api/docs',
+      basicAuth({
+        users: {
+          [process.env.SWAGGER_USER ?? 'admin']:
+            process.env.SWAGGER_PASSWORD ?? 'changeme',
+        },
+        challenge: true,
+      }),
+    );
+  }
 
   const config = new DocumentBuilder()
     .setTitle('Qashio API')
@@ -23,4 +37,5 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
+
 
