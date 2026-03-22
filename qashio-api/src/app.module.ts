@@ -13,8 +13,8 @@ import { AppService } from './app.service';
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.get<string>('DATABASE_URL'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
+        autoLoadEntities: true,
+        synchronize: config.get('NODE_ENV') !== 'production',
       }),
       inject: [ConfigService],
     }),
@@ -24,4 +24,3 @@ import { AppService } from './app.service';
   providers: [AppService],
 })
 export class AppModule {}
-

@@ -14,16 +14,15 @@ async function bootstrap() {
   );
 
   if (process.env.NODE_ENV === 'production') {
-    app.use(
-      '/api/docs',
-      basicAuth({
-        users: {
-          [process.env.SWAGGER_USER ?? 'admin']:
-            process.env.SWAGGER_PASSWORD ?? 'changeme',
-        },
-        challenge: true,
-      }),
-    );
+    const swaggerAuth = basicAuth({
+      users: {
+        [process.env.SWAGGER_USER ?? 'admin']:
+          process.env.SWAGGER_PASSWORD ?? 'changeme',
+      },
+      challenge: true,
+    });
+    app.use('/api/docs', swaggerAuth);
+    app.use('/api/docs-json', swaggerAuth);
   }
 
   const config = new DocumentBuilder()
@@ -37,5 +36,3 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
-
-
