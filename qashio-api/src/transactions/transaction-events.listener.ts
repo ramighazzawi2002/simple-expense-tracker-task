@@ -11,6 +11,22 @@ export class TransactionEventsListener {
 
   constructor(private readonly kafka: KafkaProducerService) {}
 
+  private toPayload(transaction: Transaction) {
+    return {
+      id: transaction.id,
+      amount: transaction.amount,
+      type: transaction.type,
+      categoryId: transaction.categoryId,
+      date: transaction.date,
+      reference: transaction.reference,
+      counterparty: transaction.counterparty,
+      status: transaction.status,
+      narration: transaction.narration,
+      createdAt: transaction.createdAt,
+      updatedAt: transaction.updatedAt,
+    };
+  }
+
   @OnEvent('transaction.created')
   async handleTransactionCreated(transaction: Transaction): Promise<void> {
     this.logger.log(
@@ -18,7 +34,7 @@ export class TransactionEventsListener {
     );
     await this.kafka.publish(TOPIC, transaction.id, {
       event: 'transaction.created',
-      data: transaction,
+      data: this.toPayload(transaction),
     });
   }
 
@@ -29,7 +45,7 @@ export class TransactionEventsListener {
     );
     await this.kafka.publish(TOPIC, transaction.id, {
       event: 'transaction.updated',
-      data: transaction,
+      data: this.toPayload(transaction),
     });
   }
 
@@ -40,7 +56,7 @@ export class TransactionEventsListener {
     );
     await this.kafka.publish(TOPIC, transaction.id, {
       event: 'transaction.deleted',
-      data: transaction,
+      data: this.toPayload(transaction),
     });
   }
 }

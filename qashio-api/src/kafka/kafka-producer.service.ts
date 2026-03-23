@@ -5,25 +5,21 @@ import { Kafka, Producer } from 'kafkajs';
 @Injectable()
 export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(KafkaProducerService.name);
+  private kafka: Kafka;
   private producer: Producer;
   private connected = false;
 
   constructor(private readonly config: ConfigService) {
-    const kafka = new Kafka({
+    this.kafka = new Kafka({
       clientId: 'qashio-api',
       brokers: [this.config.get<string>('KAFKA_BROKER') ?? 'kafka:29092'],
+      retry: { initialRetryTime: 300, retries: 5 },
     });
-    this.producer = kafka.producer();
+    this.producer = this.kafka.producer();
   }
 
   async onModuleInit(): Promise<void> {
-    try {
-      await this.producer.connect();
-      this.connected = true;
-      this.logger.log('Kafka producer connected');
-    } catch (err) {
-      this.logger.warn(`Kafka producer failed to connect: ${(err as Error).message}`);
-    }
+    await this.connect();
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -32,10 +28,24 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  private async connect(): Promise<void> {
+    try {
+      await this.producer.connect();
+      this.connected = true;
+      this.logger.log('Kafka producer connected');
+    } catch (err) {
+      this.connected = false;
+      this.logger.warn(`Kafka producer failed to connect: ${(err as Error).message}`);
+    }
+  }
+
   async publish(topic: string, key: string, value: unknown): Promise<void> {
     if (!this.connected) {
-      this.logger.warn(`Kafka not connected — skipping publish to "${topic}"`);
-      return;
+      await this.connect();
+      if (!this.connected) {
+        this.logger.warn(`Kafka not connected — skipping publish to "${topic}"`);
+        return;
+      }
     }
     try {
       await this.producer.send({
@@ -43,6 +53,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
         messages: [{ key, value: JSON.stringify(value) }],
       });
     } catch (err) {
+      this.connected = false;
       this.logger.error(`Failed to publish to "${topic}": ${(err as Error).message}`);
     }
   }
