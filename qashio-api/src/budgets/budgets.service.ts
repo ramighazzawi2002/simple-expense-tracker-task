@@ -7,6 +7,7 @@ import {
   TransactionType,
 } from '../transactions/transaction.entity';
 import { Budget } from './budget.entity';
+import { BudgetWithSpentDto } from './dto/budget-with-spent.dto';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 
 @Injectable()
@@ -18,7 +19,7 @@ export class BudgetsService {
   ) {}
 
   async create(dto: CreateBudgetDto): Promise<Budget> {
-    if (dto.startDate >= dto.endDate) {
+    if (new Date(dto.startDate) >= new Date(dto.endDate)) {
       throw new BadRequestException('startDate must be before endDate');
     }
 
@@ -41,7 +42,7 @@ export class BudgetsService {
     return this.budgetRepository.save(budget);
   }
 
-  async findAll(): Promise<(Budget & { spent: number })[]> {
+  async findAll(): Promise<BudgetWithSpentDto[]> {
     const budgets = await this.budgetRepository
       .createQueryBuilder('b')
       .leftJoinAndSelect('b.category', 'category')

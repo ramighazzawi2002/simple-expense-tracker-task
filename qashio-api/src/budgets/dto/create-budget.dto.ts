@@ -16,11 +16,13 @@ export class CreateBudgetDto {
   categoryId: string;
 
   @ApiProperty({ example: 1000.0 })
+  @IsNotEmpty()
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   amount: number;
 
   @ApiProperty({ enum: BudgetPeriod, example: BudgetPeriod.MONTHLY })
+  @IsNotEmpty()
   @IsEnum(BudgetPeriod)
   period: BudgetPeriod;
 

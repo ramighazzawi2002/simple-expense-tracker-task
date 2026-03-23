@@ -3,6 +3,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BudgetsService } from './budgets.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { Budget } from './budget.entity';
+import { BudgetWithSpentDto } from './dto/budget-with-spent.dto';
 
 @ApiTags('budgets')
 @Controller('budgets')
@@ -21,8 +22,8 @@ export class BudgetsController {
 
   @Get()
   @ApiOperation({ summary: 'List all budgets with current spending' })
-  @ApiResponse({ status: 200, type: [Budget] })
-  findAll(): Promise<(Budget & { spent: number })[]> {
+  @ApiResponse({ status: 200, type: [BudgetWithSpentDto] })
+  findAll(): Promise<BudgetWithSpentDto[]> {
     return this.budgetsService.findAll();
   }
 }

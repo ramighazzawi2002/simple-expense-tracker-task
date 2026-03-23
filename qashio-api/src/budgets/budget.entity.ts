@@ -20,7 +20,7 @@ export class Budget {
   id: string;
 
   @ApiProperty({ type: () => Category })
-  @ManyToOne(() => Category, { eager: true, nullable: false })
+  @ManyToOne(() => Category, { eager: true, nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'categoryId' })
   category: Category;
 
