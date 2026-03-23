@@ -17,6 +17,7 @@ export class TransactionEventsListener {
       amount: transaction.amount,
       type: transaction.type,
       categoryId: transaction.categoryId,
+      categoryName: transaction.category?.name ?? null,
       date: transaction.date,
       reference: transaction.reference,
       counterparty: transaction.counterparty,
@@ -34,6 +35,7 @@ export class TransactionEventsListener {
     );
     await this.kafka.publish(TOPIC, transaction.id, {
       event: 'transaction.created',
+      occurredAt: new Date().toISOString(),
       data: this.toPayload(transaction),
     });
   }
@@ -45,6 +47,7 @@ export class TransactionEventsListener {
     );
     await this.kafka.publish(TOPIC, transaction.id, {
       event: 'transaction.updated',
+      occurredAt: new Date().toISOString(),
       data: this.toPayload(transaction),
     });
   }
@@ -56,6 +59,7 @@ export class TransactionEventsListener {
     );
     await this.kafka.publish(TOPIC, transaction.id, {
       event: 'transaction.deleted',
+      occurredAt: new Date().toISOString(),
       data: this.toPayload(transaction),
     });
   }

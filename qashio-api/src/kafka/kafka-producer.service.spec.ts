@@ -87,8 +87,9 @@ describe('KafkaProducerService', () => {
     });
 
     it('should skip publish when reconnection also fails', async () => {
-      mockProducer.connect.mockRejectedValue(new Error('still down'));
+      mockProducer.connect.mockRejectedValueOnce(new Error('still down'));
       await service.onModuleInit();
+      mockProducer.connect.mockRejectedValueOnce(new Error('still down'));
       await service.publish('test-topic', 'key-1', { test: true });
 
       expect(mockProducer.send).not.toHaveBeenCalled();

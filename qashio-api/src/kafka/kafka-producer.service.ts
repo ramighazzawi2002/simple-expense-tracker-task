@@ -8,6 +8,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
   private producer: Producer;
   private connected = false;
+  private connectingPromise: Promise<void> | null = null;
 
   constructor(private readonly config: ConfigService) {
     this.kafka = new Kafka({
@@ -29,17 +30,26 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async connect(): Promise<void> {
-    try {
-      await this.producer.connect();
-      this.connected = true;
-      this.logger.log('Kafka producer connected');
-    } catch (err) {
-      this.connected = false;
-      this.logger.warn(`Kafka producer failed to connect: ${(err as Error).message}`);
+    if (this.connectingPromise) {
+      await this.connectingPromise;
+      return;
     }
+    this.connectingPromise = (async () => {
+      try {
+        await this.producer.connect();
+        this.connected = true;
+        this.logger.log('Kafka producer connected');
+      } catch (err) {
+        this.connected = false;
+        this.logger.warn(`Kafka producer failed to connect: ${(err as Error).message}`);
+      } finally {
+        this.connectingPromise = null;
+      }
+    })();
+    await this.connectingPromise;
   }
 
-  async publish(topic: string, key: string, value: unknown): Promise<void> {
+  async publish<T>(topic: string, key: string, value: T): Promise<void> {
     if (!this.connected) {
       await this.connect();
       if (!this.connected) {
