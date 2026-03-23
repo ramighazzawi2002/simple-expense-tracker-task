@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CategoriesService } from '../categories/categories.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { PaginatedTransactionsDto } from './dto/paginated-transactions.dto';
 import { QueryTransactionDto, SortableField } from './dto/query-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from './transaction.entity';
@@ -29,10 +30,7 @@ export class TransactionsService {
     return full;
   }
 
-  async findAll(query: QueryTransactionDto): Promise<{
-    data: Transaction[];
-    pagination: { total: number; page: number; limit: number; totalPages: number };
-  }> {
+  async findAll(query: QueryTransactionDto): Promise<PaginatedTransactionsDto> {
     const {
       page = 1,
       limit = 10,

@@ -9,9 +9,6 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Install ts-node-dev globally for hot reload (optional if used in package.json)
-RUN npm install -g ts-node-dev
-
 # Expose port
 EXPOSE 3000
 

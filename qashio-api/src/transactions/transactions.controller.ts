@@ -30,6 +30,7 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new transaction' })
   @ApiResponse({ status: 201, type: Transaction })
   @ApiResponse({ status: 400, description: 'Validation failed' })
@@ -41,7 +42,7 @@ export class TransactionsController {
   @Get()
   @ApiOperation({ summary: 'List all transactions with pagination and filters' })
   @ApiResponse({ status: 200, type: PaginatedTransactionsDto })
-  findAll(@Query() query: QueryTransactionDto) {
+  findAll(@Query() query: QueryTransactionDto): Promise<PaginatedTransactionsDto> {
     return this.transactionsService.findAll(query);
   }
 
