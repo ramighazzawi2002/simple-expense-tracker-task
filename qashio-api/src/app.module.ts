@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { CategoriesModule } from './categories/categories.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { BudgetsModule } from './budgets/budgets.module';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { BudgetsModule } from './budgets/budgets.module';
       inject: [ConfigService],
     }),
     EventEmitterModule.forRoot(),
+    KafkaModule,
     CategoriesModule,
     TransactionsModule,
     BudgetsModule,
