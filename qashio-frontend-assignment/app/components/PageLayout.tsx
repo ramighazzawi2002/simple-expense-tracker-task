@@ -1,7 +1,7 @@
 'use client';
 
-import { Container, Box, Paper } from '@mui/material';
-import NavBar from './NavBar';
+import { Box } from '@mui/material';
+import Sidebar from './Sidebar';
 import { ReactNode } from 'react';
 
 interface PageLayoutProps {
@@ -10,35 +10,13 @@ interface PageLayoutProps {
 
 export default function PageLayout({ children }: PageLayoutProps) {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <NavBar />
-      <Container component="main" maxWidth="lg" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
-        <Paper 
-          elevation={2} 
-          sx={{ 
-            p: 4, 
-            display: 'flex', 
-            flexDirection: 'column',
-            borderRadius: 2
-          }}
-        >
-          {children}
-        </Paper>
-      </Container>
-      <Box 
-        component="footer" 
-        sx={{ 
-          py: 3, 
-          bgcolor: 'background.paper', 
-          borderTop: '1px solid', 
-          borderColor: 'divider' 
-        }}
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#fafafa' }}>
+      <Sidebar />
+      <Box
+        component="main"
+        sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: 'center', color: 'text.secondary' }}>
-            © {new Date().getFullYear()} Qashio
-          </Box>
-        </Container>
+        {children}
       </Box>
     </Box>
   );

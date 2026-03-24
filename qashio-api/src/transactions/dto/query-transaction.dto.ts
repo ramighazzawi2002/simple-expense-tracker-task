@@ -22,6 +22,8 @@ export enum SortableField {
   DATE = 'date',
   STATUS = 'status',
   TYPE = 'type',
+  REFERENCE = 'reference',
+  COUNTERPARTY = 'counterparty',
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
 }

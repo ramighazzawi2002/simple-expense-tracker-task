@@ -21,9 +21,11 @@ services:
       - default
 
   qashio-frontend:
-    build: 
+    build:
       context: ./qashio-frontend-assignment
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:3000
     ports:
       - "4000:3000"
     depends_on:
