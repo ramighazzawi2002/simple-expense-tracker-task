@@ -47,7 +47,9 @@ export class TransactionsService {
 
     const qb = this.transactionRepository
       .createQueryBuilder('transaction')
-      .leftJoinAndSelect('transaction.category', 'category');
+      .withDeleted()
+      .leftJoinAndSelect('transaction.category', 'category')
+      .where('transaction.deletedAt IS NULL');
 
     if (category) {
       qb.andWhere('category.id = :category', { category });
@@ -95,10 +97,13 @@ export class TransactionsService {
   }
 
   async findOne(id: string): Promise<Transaction> {
-    const transaction = await this.transactionRepository.findOne({
-      where: { id },
-      relations: ['category'],
-    });
+    const transaction = await this.transactionRepository
+      .createQueryBuilder('transaction')
+      .withDeleted()
+      .leftJoinAndSelect('transaction.category', 'category')
+      .where('transaction.id = :id', { id })
+      .andWhere('transaction.deletedAt IS NULL')
+      .getOne();
     if (!transaction) {
       throw new NotFoundException(`Transaction with id "${id}" not found`);
     }
@@ -128,10 +133,13 @@ export class TransactionsService {
   }
 
   async exportToCsv(): Promise<string> {
-    const transactions = await this.transactionRepository.find({
-      relations: ['category'],
-      order: { date: 'DESC' },
-    });
+    const transactions = await this.transactionRepository
+      .createQueryBuilder('transaction')
+      .withDeleted()
+      .leftJoinAndSelect('transaction.category', 'category')
+      .where('transaction.deletedAt IS NULL')
+      .orderBy('transaction.date', 'DESC')
+      .getMany();
 
     const escape = (v: unknown) => {
       let str = String(v ?? '').replace(/"/g, '""');
