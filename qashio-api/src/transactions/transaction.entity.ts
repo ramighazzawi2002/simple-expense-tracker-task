@@ -1,8 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -37,6 +40,7 @@ export class Transaction {
   amount: number;
 
   @ApiProperty({ enum: TransactionType, example: TransactionType.EXPENSE })
+  @Index()
   @Column({ type: 'enum', enum: TransactionType })
   type: TransactionType;
 
@@ -46,10 +50,12 @@ export class Transaction {
   category: Category;
 
   @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
+  @Index()
   @Column()
   categoryId: string;
 
   @ApiProperty({ example: '2026-03-23' })
+  @Index()
   @Column({ type: 'date' })
   date: string;
 
@@ -62,6 +68,7 @@ export class Transaction {
   counterparty: string;
 
   @ApiProperty({ enum: TransactionStatus, default: TransactionStatus.PENDING })
+  @Index()
   @Column({
     type: 'enum',
     enum: TransactionStatus,
@@ -74,10 +81,15 @@ export class Transaction {
   narration: string;
 
   @ApiProperty()
+  @Index()
   @CreateDateColumn()
   createdAt: Date;
 
   @ApiProperty()
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Exclude()
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date | null;
 }

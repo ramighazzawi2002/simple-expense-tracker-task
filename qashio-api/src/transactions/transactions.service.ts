@@ -6,6 +6,7 @@ import { CategoriesService } from '../categories/categories.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { PaginatedTransactionsDto } from './dto/paginated-transactions.dto';
 import { QueryTransactionDto, SortableField } from './dto/query-transaction.dto';
+import { TransactionSummaryDto } from './dto/transaction-summary.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from './transaction.entity';
 
@@ -71,7 +72,12 @@ export class TransactionsService {
       );
     }
 
-    qb.orderBy(`transaction.${sortBy}`, order)
+    const sortColumn =
+      sortBy === SortableField.CATEGORY
+        ? 'category.name'
+        : `transaction.${sortBy}`;
+
+    qb.orderBy(sortColumn, order)
       .skip((page - 1) * limit)
       .take(limit);
 
@@ -117,7 +123,67 @@ export class TransactionsService {
 
   async remove(id: string): Promise<void> {
     const transaction = await this.findOne(id);
-    await this.transactionRepository.remove(transaction);
+    await this.transactionRepository.softRemove(transaction);
     this.eventEmitter.emit('transaction.deleted', { ...transaction, id });
+  }
+
+  async exportToCsv(): Promise<string> {
+    const transactions = await this.transactionRepository.find({
+      relations: ['category'],
+      order: { date: 'DESC' },
+    });
+
+    const escape = (v: unknown) => {
+      let str = String(v ?? '').replace(/"/g, '""');
+      if (/^[=+\-@\t\r]/.test(str)) str = `'${str}`;
+      return `"${str}"`;
+    };
+
+    const header = ['id', 'date', 'type', 'amount', 'category', 'reference', 'counterparty', 'status', 'narration', 'createdAt'].join(',');
+    const rows = transactions.map((t) =>
+      [
+        escape(t.id),
+        escape(t.date),
+        escape(t.type),
+        escape(t.amount),
+        escape(t.category?.name),
+        escape(t.reference),
+        escape(t.counterparty),
+        escape(t.status),
+        escape(t.narration),
+        escape(t.createdAt),
+      ].join(','),
+    );
+
+    return [header, ...rows].join('\n');
+  }
+
+  async getSummary(): Promise<TransactionSummaryDto> {
+    const raw = await this.transactionRepository
+      .createQueryBuilder('t')
+      .select([
+        `COALESCE(SUM(CASE WHEN t.type = 'income' AND t.status = 'Completed' THEN t.amount ELSE 0 END), 0) AS "totalIncome"`,
+        `COALESCE(SUM(CASE WHEN t.type = 'expense' AND t.status = 'Completed' THEN t.amount ELSE 0 END), 0) AS "totalExpense"`,
+        `COUNT(*) AS "transactionCount"`,
+        `SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) AS "completedCount"`,
+        `SUM(CASE WHEN t.status = 'Pending' THEN 1 ELSE 0 END) AS "pendingCount"`,
+        `SUM(CASE WHEN t.status = 'Failed' THEN 1 ELSE 0 END) AS "failedCount"`,
+      ])
+      .getRawOne();
+
+    const totalIncome = parseFloat(raw.totalIncome) || 0;
+    const totalExpense = parseFloat(raw.totalExpense) || 0;
+
+    return {
+      totalIncome,
+      totalExpense,
+      netBalance: totalIncome - totalExpense,
+      transactionCount: parseInt(raw.transactionCount) || 0,
+      byStatus: {
+        Completed: parseInt(raw.completedCount) || 0,
+        Pending: parseInt(raw.pendingCount) || 0,
+        Failed: parseInt(raw.failedCount) || 0,
+      },
+    };
   }
 }

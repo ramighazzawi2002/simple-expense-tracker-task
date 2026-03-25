@@ -8,6 +8,7 @@ import {
   IsString,
   IsUUID,
   Max,
+  MaxLength,
   Min,
 } from 'class-validator';
 import { TransactionStatus, TransactionType } from '../transaction.entity';
@@ -24,6 +25,8 @@ export enum SortableField {
   TYPE = 'type',
   REFERENCE = 'reference',
   COUNTERPARTY = 'counterparty',
+  NARRATION = 'narration',
+  CATEGORY = 'category',
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
 }
@@ -82,5 +85,6 @@ export class QueryTransactionDto {
   @ApiPropertyOptional({ example: 'Acme' })
   @IsOptional()
   @IsString()
+  @MaxLength(200)
   search?: string;
 }

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Exclude } from 'class-transformer';
+import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('categories')
 export class Category {
@@ -10,4 +11,8 @@ export class Category {
   @ApiProperty({ example: 'Food & Drinks' })
   @Column({ unique: true })
   name: string;
+
+  @Exclude()
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date | null;
 }

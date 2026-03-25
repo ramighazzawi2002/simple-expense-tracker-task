@@ -5,6 +5,7 @@ import type {
   CreateTransactionPayload,
   UpdateTransactionPayload,
   TransactionQueryParams,
+  TransactionSummary,
 } from '@/app/types';
 
 export function fetchTransactions(
@@ -42,4 +43,8 @@ export function updateTransaction(
 
 export function deleteTransaction(id: string): Promise<void> {
   return apiFetch(`/transactions/${id}`, { method: 'DELETE' });
+}
+
+export function fetchTransactionSummary(): Promise<TransactionSummary> {
+  return apiFetch('/transactions/summary');
 }

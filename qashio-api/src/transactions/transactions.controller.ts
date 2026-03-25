@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -10,6 +11,7 @@ import {
   Post,
   Put,
   Query,
+  StreamableFile,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -21,6 +23,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { QueryTransactionDto } from './dto/query-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PaginatedTransactionsDto } from './dto/paginated-transactions.dto';
+import { TransactionSummaryDto } from './dto/transaction-summary.dto';
 import { Transaction } from './transaction.entity';
 import { TransactionsService } from './transactions.service';
 
@@ -37,6 +40,23 @@ export class TransactionsController {
   @ApiResponse({ status: 404, description: 'Category not found' })
   create(@Body() dto: CreateTransactionDto): Promise<Transaction> {
     return this.transactionsService.create(dto);
+  }
+
+  @Get('summary')
+  @ApiOperation({ summary: 'Get transaction summary statistics' })
+  @ApiResponse({ status: 200, type: TransactionSummaryDto })
+  getSummary(): Promise<TransactionSummaryDto> {
+    return this.transactionsService.getSummary();
+  }
+
+  @Get('export')
+  @Header('Content-Type', 'text/csv')
+  @Header('Content-Disposition', 'attachment; filename="transactions.csv"')
+  @ApiOperation({ summary: 'Export all transactions as CSV' })
+  @ApiResponse({ status: 200, description: 'CSV file download' })
+  async exportCsv(): Promise<StreamableFile> {
+    const csv = await this.transactionsService.exportToCsv();
+    return new StreamableFile(Buffer.from(csv, 'utf-8'));
   }
 
   @Get()

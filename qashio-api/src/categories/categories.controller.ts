@@ -1,5 +1,5 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { Category } from './category.entity';
@@ -24,5 +24,15 @@ export class CategoriesController {
   @ApiResponse({ status: 200, type: [Category] })
   findAll(): Promise<Category[]> {
     return this.categoriesService.findAll();
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Soft-delete a category' })
+  @ApiParam({ name: 'id', type: String, description: 'Category UUID' })
+  @ApiResponse({ status: 204, description: 'Category deleted' })
+  @ApiResponse({ status: 404, description: 'Category not found' })
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.categoriesService.remove(id);
   }
 }

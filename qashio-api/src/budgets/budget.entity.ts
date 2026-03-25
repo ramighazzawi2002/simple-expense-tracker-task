@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 import {
   Column,
+  DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -25,6 +28,7 @@ export class Budget {
   category: Category;
 
   @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
+  @Index()
   @Column()
   categoryId: string;
 
@@ -41,14 +45,21 @@ export class Budget {
   amount: number;
 
   @ApiProperty({ enum: BudgetPeriod, example: BudgetPeriod.MONTHLY })
+  @Index()
   @Column({ type: 'enum', enum: BudgetPeriod })
   period: BudgetPeriod;
 
   @ApiProperty({ example: '2026-03-01' })
+  @Index()
   @Column({ type: 'date' })
   startDate: string;
 
   @ApiProperty({ example: '2026-03-31' })
+  @Index()
   @Column({ type: 'date' })
   endDate: string;
+
+  @Exclude()
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date | null;
 }
