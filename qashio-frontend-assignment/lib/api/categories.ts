@@ -11,3 +11,7 @@ export function createCategory(name: string): Promise<Category> {
     body: JSON.stringify({ name }),
   });
 }
+
+export function deleteCategory(id: string): Promise<void> {
+  return apiFetch(`/categories/${id}`, { method: 'DELETE' });
+}

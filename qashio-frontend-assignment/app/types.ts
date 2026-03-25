@@ -57,6 +57,70 @@ export interface CreateTransactionPayload {
 
 export type UpdateTransactionPayload = Partial<CreateTransactionPayload>;
 
+export interface TransactionSummary {
+  totalIncome: number;
+  totalExpense: number;
+  netBalance: number;
+  transactionCount: number;
+  byStatus: {
+    Completed: number;
+    Pending: number;
+    Failed: number;
+  };
+}
+
+export type BudgetPeriod = 'monthly' | 'weekly';
+
+export interface Budget {
+  id: string;
+  category: Category;
+  categoryId: string;
+  amount: number;
+  period: BudgetPeriod;
+  startDate: string;
+  endDate: string;
+}
+
+export interface BudgetWithSpent extends Budget {
+  spent: number;
+}
+
+export interface CreateBudgetPayload {
+  categoryId: string;
+  amount: number;
+  period: BudgetPeriod;
+  startDate: string;
+  endDate: string;
+}
+
+export interface UpdateBudgetPayload {
+  amount?: number;
+  period?: BudgetPeriod;
+  startDate?: string;
+  endDate?: string;
+}
+
+export type NotificationType = 'budget_exceeded' | 'large_expense';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  read: boolean;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  payload: Record<string, unknown> | null;
+  createdAt: string;
+}
+
 export interface TransactionFilters {
   dateRange: {
     startDate: Date | null;

@@ -1,21 +1,19 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Box, Button, Typography, Alert, Skeleton } from '@mui/material';
+import { Box, Button, Typography, Alert, Skeleton, Paper } from '@mui/material';
 import { DataGrid, GridColDef, GridSortModel, GridPaginationModel } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { fetchTransactions } from '@/lib/api/transactions';
+import { useTransactions, useTransactionSummary } from '@/app/hooks/useTransactions';
 import { useTransactionStore } from '@/app/hooks/useTransactionStore';
 import { useDebounce } from '@/app/hooks/useDebounce';
-import type { Transaction, TransactionStatus, TransactionQueryParams } from '@/app/types';
+import type { Transaction, TransactionStatus, TransactionType, TransactionQueryParams } from '@/app/types';
+import { formatCurrency } from '@/lib/utils/formatCurrency';
 import StatusBadge from '@/app/components/StatusBadge';
 import TransactionFilters from '@/app/components/TransactionFilters';
 import TransactionDetailDrawer from '@/app/components/TransactionDetailDrawer';
-
-const ACCENT = '#0eb68d';
 
 const columns: GridColDef<Transaction>[] = [
   {
@@ -30,26 +28,35 @@ const columns: GridColDef<Transaction>[] = [
       }
     },
   },
-  { field: 'reference', headerName: 'Reference', width: 150 },
-  { field: 'counterparty', headerName: 'Counterparty', flex: 1, minWidth: 160 },
+  { field: 'reference', headerName: 'Reference', width: 130 },
+  { field: 'counterparty', headerName: 'Counterparty', flex: 1, minWidth: 130 },
+  {
+    field: 'type',
+    headerName: 'Type',
+    width: 100,
+    valueFormatter: (value: string) => value?.charAt(0).toUpperCase() + value?.slice(1),
+  },
+  {
+    field: 'category',
+    headerName: 'Category',
+    width: 140,
+    valueGetter: (_value: unknown, row: Transaction) => row.category?.name ?? '',
+  },
   {
     field: 'amount',
     headerName: 'Amount',
-    width: 140,
+    width: 130,
     align: 'right',
     headerAlign: 'right',
-    valueFormatter: (value: number) =>
-      new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(value),
+    valueFormatter: (value: number) => formatCurrency(value),
   },
   {
     field: 'status',
     headerName: 'Status',
-    width: 130,
+    width: 120,
     renderCell: (params) => <StatusBadge status={params.value as TransactionStatus} />,
   },
+  { field: 'narration', headerName: 'Narration', width: 150 },
 ];
 
 export default function TransactionsPage() {
@@ -64,6 +71,8 @@ export default function TransactionsPage() {
     { field: 'createdAt', sort: 'desc' },
   ]);
   const [statusFilter, setStatusFilter] = useState<TransactionStatus | ''>('');
+  const [typeFilter, setTypeFilter] = useState<TransactionType | ''>('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   const debouncedSearch = useDebounce(filters.searchTerm);
@@ -75,6 +84,8 @@ export default function TransactionsPage() {
     order: (sortModel[0]?.sort?.toUpperCase() as 'ASC' | 'DESC') || 'DESC',
     search: debouncedSearch || undefined,
     status: statusFilter || undefined,
+    type: typeFilter || undefined,
+    category: categoryFilter || undefined,
     startDate: filters.dateRange.startDate
       ? format(filters.dateRange.startDate, 'yyyy-MM-dd')
       : undefined,
@@ -83,10 +94,8 @@ export default function TransactionsPage() {
       : undefined,
   };
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['transactions', queryParams],
-    queryFn: () => fetchTransactions(queryParams),
-  });
+  const { data, isLoading, isError, error } = useTransactions(queryParams);
+  const { data: summary } = useTransactionSummary();
 
   const handleSortChange = useCallback((model: GridSortModel) => {
     setSortModel(model);
@@ -104,7 +113,7 @@ export default function TransactionsPage() {
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'center',
-          px: 3,
+          px: { xs: 2, sm: 3 },
           py: 1.5,
           minHeight: 68,
         }}
@@ -113,23 +122,56 @@ export default function TransactionsPage() {
           variant="outlined"
           startIcon={<AddIcon />}
           onClick={() => router.push('/transactions/new')}
-          sx={{
-            color: ACCENT,
-            borderColor: ACCENT,
-            fontWeight: 600,
-            textTransform: 'none',
-            '&:hover': { borderColor: ACCENT, bgcolor: `${ACCENT}08` },
-          }}
+          color="primary"
         >
           New Transaction
         </Button>
       </Box>
 
       {/* Filters */}
-      <TransactionFilters status={statusFilter} onStatusChange={setStatusFilter} />
+      <TransactionFilters
+        status={statusFilter}
+        onStatusChange={setStatusFilter}
+        type={typeFilter}
+        onTypeChange={setTypeFilter}
+        categoryId={categoryFilter}
+        onCategoryChange={setCategoryFilter}
+      />
+
+      {/* Summary Stats */}
+      {summary && (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            gap: 2,
+            px: { xs: 2, sm: 3 },
+            pb: 2,
+          }}
+        >
+          {[
+            { label: 'Total Income', value: summary.totalIncome, color: 'success.main' },
+            { label: 'Total Expense', value: summary.totalExpense, color: 'error.main' },
+            { label: 'Net Balance', value: summary.netBalance, color: summary.netBalance >= 0 ? 'success.main' : 'error.main' },
+          ].map(({ label, value, color }) => (
+            <Paper
+              key={label}
+              variant="outlined"
+              sx={{ px: 2.5, py: 1.5, borderRadius: 2 }}
+            >
+              <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                {label}
+              </Typography>
+              <Typography variant="h6" fontWeight={700} sx={{ color, mt: 0.25 }}>
+                {formatCurrency(value)}
+              </Typography>
+            </Paper>
+          ))}
+        </Box>
+      )}
 
       {/* Content */}
-      <Box sx={{ flex: 1, px: 3, pb: 3 }}>
+      <Box sx={{ flex: 1, px: { xs: 2, sm: 3 }, pb: 3, overflow: 'auto' }}>
         {isError && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {(error as Error).message || 'Failed to load transactions'}
@@ -168,7 +210,7 @@ export default function TransactionsPage() {
             sx={{
               border: 'none',
               '& .MuiDataGrid-columnHeaders': {
-                bgcolor: '#f0f0f2',
+                bgcolor: 'grey.100',
                 borderRadius: 0,
               },
               '& .MuiDataGrid-columnHeaderTitle': {
@@ -177,7 +219,7 @@ export default function TransactionsPage() {
               },
               '& .MuiDataGrid-cell': {
                 fontSize: 13,
-                borderColor: '#e1e2e6',
+                borderColor: 'divider',
               },
               '& .MuiDataGrid-row:hover': {
                 cursor: 'pointer',

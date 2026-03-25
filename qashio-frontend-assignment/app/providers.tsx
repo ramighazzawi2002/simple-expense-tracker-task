@@ -11,10 +11,18 @@ import { ReactNode, useState } from 'react';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#0063cc',
+      main: '#0eb68d',
+      dark: '#0ca07c',
+      contrastText: '#fff',
     },
     secondary: {
-      main: '#19857b',
+      main: '#a78f65',
+    },
+    success: {
+      main: '#00C48C',
+    },
+    error: {
+      main: '#FF6B6B',
     },
     background: {
       default: '#f8f9fa',
@@ -23,10 +31,30 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
   },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+      },
+    },
+  },
 });
 
 export function Providers({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 5 * 60 * 1000,
+            refetchOnWindowFocus: false,
+          },
+        },
+      }),
+  );
 
   return (
     <QueryClientProvider client={queryClient}>

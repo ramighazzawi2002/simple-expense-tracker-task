@@ -27,4 +27,9 @@ export class CategoriesService {
   findAll(): Promise<Category[]> {
     return this.categoryRepository.find({ order: { name: 'ASC' } });
   }
+
+  async remove(id: string): Promise<void> {
+    const category = await this.findOne(id);
+    await this.categoryRepository.softRemove(category);
+  }
 }

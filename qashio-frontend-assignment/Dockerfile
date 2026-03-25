@@ -30,7 +30,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Copy built files from build stage
 COPY --from=build /app/next.config.js ./
